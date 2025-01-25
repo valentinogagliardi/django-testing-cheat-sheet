@@ -1,4 +1,6 @@
 from django.test import TestCase, RequestFactory
+from bs4 import BeautifulSoup
+
 from library.models import Book, Author
 
 from library.views import BookDetailView
@@ -28,3 +30,25 @@ class TestDetail(TestCase):
             response = view(request, pk=book.pk)
             self.assertContains(response, "Test Book")
             self.assertContains(response, "Jane Doe")
+
+
+class TestBookCreateView(TestCase):
+    def test_form_labels(self):
+        response = self.client.get("/books/create/")
+        soup = BeautifulSoup(response.content, "html.parser")
+
+        expected_labels = [
+            "Insert the book title",
+            "Select the book authors",
+        ]
+
+        for label in expected_labels:
+            label_el = soup.find("label", text=label)
+            self.assertIsNotNone(
+                label_el,
+                f"Label {label} not found",
+            )
+            self.assertIsNotNone(
+                soup.find(attrs={"id": label_el.get("for")}),
+                f"Element with {label} not found",
+            )
